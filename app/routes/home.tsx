@@ -39,7 +39,7 @@ export default function Home() {
     loadResumes()
   }, []);
 
-  return <main className="bg-[url('/images/bg-greenl.png')] bg-cover">
+  return <main className="bg-[url('/images/bg-milky.jpg')] bg-cover">
     <Navbar />
 
     <section className="main-section">

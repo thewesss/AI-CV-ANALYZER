@@ -27,7 +27,7 @@ const ScoreCircle = ({ score = 75 }: { score: number }) => {
         <defs>
           <linearGradient id="grad" x1="1" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#FF97AD" />
-            <stop offset="100%" stopColor="#5171FF" />
+            <stop offset="100%" stopColor="#fffFF" />
           </linearGradient>
         </defs>
         <circle

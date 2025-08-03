@@ -7,6 +7,11 @@ import { convertPdfToImage } from '~/lib/pdf2img';
 import {generateUUID} from "~/lib/utils";
 import {prepareInstructions} from "../../constants";
 
+export const meta = () => ([
+    { title: 'OptiCV | Upload' },
+    { name: 'description', content: 'Log into your account' },
+])
+
 const Upload = () => {
     const { auth, isLoading, fs, ai, kv } = usePuterStore();
     const navigate = useNavigate();
@@ -18,20 +23,29 @@ const Upload = () => {
         setFile(file)
     }
 
-    const handleAnalyze = async ({ companyName, jobTitle, jobDescription, file }: { companyName: string, jobTitle: string, jobDescription: string, file: File  }) => {
+    const handleAnalyze = async ({ companyName, jobTitle, jobDescription, file }: { companyName: string, jobTitle: string, jobDescription: string, file: File }) => {
         setIsProcessing(true);
 
         setStatusText('Uploading the file...');
         const uploadedFile = await fs.upload([file]);
-        if(!uploadedFile) return setStatusText('Error: Failed to upload file');
+        if (!uploadedFile) {
+            setIsProcessing(false);
+            return setStatusText('Error: Failed to upload file');
+        }
 
         setStatusText('Converting to image...');
         const imageFile = await convertPdfToImage(file);
-        if(!imageFile.file) return setStatusText('Error: Failed to convert PDF to image');
+        if (!imageFile.file) {
+            setIsProcessing(false);
+            return setStatusText('Error: Failed to convert PDF to image');
+        }
 
         setStatusText('Uploading the image...');
         const uploadedImage = await fs.upload([imageFile.file]);
-        if(!uploadedImage) return setStatusText('Error: Failed to upload image');
+        if (!uploadedImage) {
+            setIsProcessing(false);
+            return setStatusText('Error: Failed to upload image');
+        }
 
         setStatusText('Preparing data...');
         const uuid = generateUUID();
@@ -41,12 +55,11 @@ const Upload = () => {
             imagePath: uploadedImage.path,
             companyName, jobTitle, jobDescription,
             feedback: '',
-        }
+        };
         await kv.set(`resume:${uuid}`, JSON.stringify(data));
 
         setStatusText('Analyzing...');
-
-        let feedback; // <-- Define feedback outside the try block
+        let feedback;
 
         try {
             feedback = await ai.feedback(
@@ -54,51 +67,39 @@ const Upload = () => {
                 prepareInstructions({ jobTitle, jobDescription })
             );
         } catch (err) {
-            console.error("❌ ERROR DURING AI CALL:", err);
-            setStatusText("An error occurred while communicating with the AI. Check the console.");
-            setIsProcessing(false); // <-- Stop the loading animation
-            return; // <-- Exit the function
-        }
-
-
-        if (!feedback) {
-            setStatusText('Error: AI returned an empty response. Check the console.');
+            console.error("❌ AI Call Failed:", JSON.stringify(err, null, 2));
+            setStatusText("Error: Permission denied by AI service. Please check your Puter.com account for usage limits or billing issues.");
             setIsProcessing(false);
             return;
         }
 
-        // This is your existing try...catch block for parsing, which is still correct
-        // ... inside handleAnalyze
+        if (!feedback) {
+            setStatusText('Error: AI returned an empty response.');
+            setIsProcessing(false);
+            return;
+        }
 
         try {
             const content = feedback?.message?.content;
-
-            // The AI returns an array with a single text object, so we extract it.
-            const feedbackText = Array.isArray(content) && content[0]?.text 
-                ? content[0].text 
-                : "";
+            const feedbackText = Array.isArray(content) && content[0]?.text ? content[0].text : "";
 
             if (!feedbackText) {
                 throw new Error("AI returned empty or invalid content.");
             }
 
             const parsedFeedback = JSON.parse(feedbackText);
-
-            // You can uncomment this log if you need to debug again in the future
-            // console.log("PARSED FEEDBACK:", parsedFeedback);
-
             data.feedback = parsedFeedback;
             await kv.set(`resume:${uuid}`, JSON.stringify(data));
 
             setStatusText('Analysis complete, redirecting...');
             navigate(`/resume/${uuid}`);
-            
+
         } catch (err) {
-            console.error("❌ FAILED TO PARSE OR PROCESS FEEDBACK:", err);
-            setStatusText("Error: Failed to process the AI response. Check the console for details.");
-            setIsProcessing(false); // Stop the loading animation on error
+            console.error("❌ FAILED TO PARSE RESPONSE:", err);
+            setStatusText("Error: Failed to process the AI response.");
+            setIsProcessing(false);
         }
-    }
+    };
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -116,7 +117,7 @@ const Upload = () => {
     }
 
     return (
-        <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+        <main className="bg-[url('/images/bg-milky.jpg')] bg-cover">
             <Navbar />
 
             <section className="main-section">
