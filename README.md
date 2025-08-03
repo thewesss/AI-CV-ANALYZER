@@ -32,3 +32,4 @@ Built with **React**, **Remix**, **Zustand**, and **Claude Sonnet AI**, this app
 
 ---
 
+Visit https://ai-cv-analyzer-alpha.vercel.app/
