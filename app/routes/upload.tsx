@@ -46,21 +46,58 @@ const Upload = () => {
 
         setStatusText('Analyzing...');
 
-        const feedback = await ai.feedback(
-            uploadedFile.path,
-            prepareInstructions({ jobTitle, jobDescription })
-        )
-        if (!feedback) return setStatusText('Error: Failed to analyze resume');
+        let feedback; // <-- Define feedback outside the try block
 
-        const feedbackText = typeof feedback.message.content === 'string'
-            ? feedback.message.content
-            : feedback.message.content[0].text;
+        try {
+            feedback = await ai.feedback(
+                uploadedFile.path,
+                prepareInstructions({ jobTitle, jobDescription })
+            );
+        } catch (err) {
+            console.error("❌ ERROR DURING AI CALL:", err);
+            setStatusText("An error occurred while communicating with the AI. Check the console.");
+            setIsProcessing(false); // <-- Stop the loading animation
+            return; // <-- Exit the function
+        }
 
-        data.feedback = JSON.parse(feedbackText);
-        await kv.set(`resume:${uuid}`, JSON.stringify(data));
-        setStatusText('Analysis complete, redirecting...');
-        console.log(data);
-        navigate(`/resume/${uuid}`);
+
+        if (!feedback) {
+            setStatusText('Error: AI returned an empty response. Check the console.');
+            setIsProcessing(false);
+            return;
+        }
+
+        // This is your existing try...catch block for parsing, which is still correct
+        // ... inside handleAnalyze
+
+        try {
+            const content = feedback?.message?.content;
+
+            // The AI returns an array with a single text object, so we extract it.
+            const feedbackText = Array.isArray(content) && content[0]?.text 
+                ? content[0].text 
+                : "";
+
+            if (!feedbackText) {
+                throw new Error("AI returned empty or invalid content.");
+            }
+
+            const parsedFeedback = JSON.parse(feedbackText);
+
+            // You can uncomment this log if you need to debug again in the future
+            // console.log("PARSED FEEDBACK:", parsedFeedback);
+
+            data.feedback = parsedFeedback;
+            await kv.set(`resume:${uuid}`, JSON.stringify(data));
+
+            setStatusText('Analysis complete, redirecting...');
+            navigate(`/resume/${uuid}`);
+            
+        } catch (err) {
+            console.error("❌ FAILED TO PARSE OR PROCESS FEEDBACK:", err);
+            setStatusText("Error: Failed to process the AI response. Check the console for details.");
+            setIsProcessing(false); // Stop the loading animation on error
+        }
     }
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {

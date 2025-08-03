@@ -10,6 +10,18 @@ export const meta = () => ([
   { name: 'description', content: 'Detailed overview of your resume' },
 ]);
 
+// Helper to ensure feedback is always in expected shape
+function normalizeFeedback(feedback: any): Feedback {
+  return {
+    overallScore: feedback.overallScore ?? feedback.overall_score ?? 0,
+    ATS: feedback.ATS ?? feedback.ats ?? { score: 0, tips: [] },
+    toneAndStyle: feedback.toneAndStyle ?? feedback.tone_and_style ?? { score: 0, tips: [] },
+    content: feedback.content ?? { score: 0, tips: [] },
+    structure: feedback.structure ?? { score: 0, tips: [] },
+    skills: feedback.skills ?? { score: 0, tips: [] },
+  };
+}
+
 const Resume = () => {
   const { auth, isLoading, fs, kv } = usePuterStore();
   const { id } = useParams();
@@ -42,11 +54,12 @@ const Resume = () => {
           return;
         }
 
-        if (!data.feedback.ATS) {
-          console.warn(`No ATS feedback in loaded data for id ${id}`);
+        const normalized = normalizeFeedback(data.feedback);
+
+        if (!normalized.ATS || typeof normalized.ATS.score !== 'number') {
+          console.warn(`No valid ATS feedback in loaded data for id ${id}`);
         }
 
-        // Load resume PDF and image URLs here if needed
         if (data.resumePath) {
           const resumeBlob = await fs.read(data.resumePath);
           if (resumeBlob) {
@@ -63,7 +76,7 @@ const Resume = () => {
           }
         }
 
-        setFeedback(data.feedback);
+        setFeedback(normalized);
       } catch (e) {
         console.error('Failed to parse resume data:', e);
       }
@@ -71,23 +84,6 @@ const Resume = () => {
 
     loadResume();
   }, [id, fs, kv]);
-
-  // For quick testing, uncomment below to test with hardcoded feedback
-  
-  useEffect(() => {
-    setFeedback({
-      overallScore: 80,
-      ATS: {
-        score: 85,
-        tips: [{ type: "good", tip: "Good keyword usage" }]
-      },
-      toneAndStyle: { score: 80, tips: [] },
-      content: { score: 80, tips: [] },
-      structure: { score: 80, tips: [] },
-      skills: { score: 80, tips: [] }
-    });
-  }, []);
-  
 
   return (
     <main className="!pt-0">
@@ -99,7 +95,7 @@ const Resume = () => {
       </nav>
 
       <div className="flex flex-row w-full max-lg:flex-col-reverse">
-        <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
+        <section className="feedback-section bg-[url('/images/bg-greeng.png')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
           {imageUrl && resumeUrl && (
             <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-wxl:h-fit w-fit">
               <a href={resumeUrl} target="_blank" rel="noopener noreferrer">
@@ -144,4 +140,5 @@ const Resume = () => {
 };
 
 export default Resume;
+
 
