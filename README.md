@@ -1,87 +1,34 @@
-# Welcome to React Router!
+# 🧠 OptiCV – AI Resume Analyzer
 
-A modern, production-ready template for building full-stack React applications using React Router.
+OptiCV is an AI-powered resume analyzer that provides detailed feedback on how to improve your resume for job applications. It evaluates tone, structure, content, keywords, and ATS (Applicant Tracking System) compatibility using an advanced AI model.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
-
-## Features
-
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+Built with **React**, **Remix**, **Zustand**, and **Claude Sonnet AI**, this app helps job seekers refine their resumes and improve their chances of getting interviews.
 
 ---
 
-Built with ❤️ using React Router.
+## 🚀 Features
+
+- ✅ Upload your resume (PDF format)
+- 📊 Get an **overall score** out of 100
+- 🤖 AI feedback on:
+  - Tone & Style
+  - Content quality
+  - Structure and formatting
+  - Skills section
+  - ATS compatibility
+- 💡 Actionable suggestions for improvement
+- 🖼 PDF-to-image preview of your uploaded resume
+- 🔒 User authentication (via `puter` API abstraction)
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend**: React, Remix, TailwindCSS
+- **State Management**: Zustand
+- **Backend/API**: Custom `puter` API interface
+- **AI Model**: Claude Sonnet 4 (Anthropic)
+- **Storage**: KV and File System interface via `puter.fs` and `puter.kv`
+
+---
+
